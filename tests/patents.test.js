@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const HomePage = require('../pages/PatentsPage');
+const HomePage = require('../pages/HomePage');
 const PatentsPage = require('../pages/PatentsPage');
 
 test('patents-desktop-2', async ({ browser }) => {
