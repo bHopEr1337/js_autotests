@@ -27,7 +27,7 @@ class HomePage {
 
     // Метод для переода на главную страницу
     async navigate() {
-        await this.page.goto('https://infotecs.ru/');
+        await this.page.goto('https://infotecs.ru/', { waitUntil: 'domcontentloaded' });
     }
 
 

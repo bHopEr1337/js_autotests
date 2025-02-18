@@ -12,10 +12,17 @@ test('patents-desktop-3', async ({ browser }) => {
 
     try {
         await patentsPage.navigate();
-        await patentsPage.clickElement(patentsPage.showAllButton);
-
         await page.waitForSelector('.b-file-item__content-title', { state: 'visible', timeout: 10000 });
+
+        await patentsPage.clickElement(patentsPage.showAllButton);
+        await page.waitForSelector('.b-file-item__content-title', { state: 'visible', timeout: 10000 });
+
         const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
+        //let patents = ['ViPNet QSS', 'Способ обнаружения аномального трафика в сети', 'Способ передачи данных в цифровых сетях передачи данных по протоколу TCP/IP через HTTP', 'Свидетельство на товарный знак ViPNet','Свидетельство РФ на товарный знак ViPNet Quandor','Способ шифрования данных'];
+        //let patents = ['Свидетельство на товарный знак ViPNet','Свидетельство РФ на товарный знак ViPNet Quandor','Способ шифрования данных','ViPNet QSS','Свидетельство на товарный знак ViPNet','ViPNet QSS','ViPNet QSS','ViPNet QSS'];
+
+        //Свидетельство о государственной регистрации ViPNet Coordinator HW 5
+        //Свидетельство о государственной регистрации ViPNet Coordinator HW 4
 
         const homePage = new HomePage(page);
         await homePage.navigate();
@@ -31,9 +38,6 @@ test('patents-desktop-3', async ({ browser }) => {
                 await homePage.clickElement(homePage.inputSearch);
                 await homePage.inputSearch.fill(patentText);
                 await homePage.inputSearch.press('Enter');
-
-                // Используем ожидание, чтобы дать время загрузиться результатам
-                //await page.waitForTimeout(2000);
 
                 const responsePromise = page.waitForResponse(response => 
                     response.url().startsWith('https://infotecs.ru/local/api/search/ajax/getitems.php') &&
@@ -52,33 +56,83 @@ test('patents-desktop-3', async ({ browser }) => {
                 // Перебираем все элементы
                 for (let i = 0; i < count; i++) {
                     try {
-                        //блок с элементами вывода - b-header__search-items ps b-header__search-items--js_init
-                        // Кнопка показать всё - b-header__search-total-count
-
-                        // Если кнопка существует, то нажать
-                        // На новой странице найти необходимы текст в блоке b-search-page__search-item-title
-                        // независимо от исхода вернуться в поиск на главную страницу.
-
                         const element = await searchResults.nth(i);
                         const titleOfOutputElement = await element.locator('.b-header__search-item-title');
+                        await titleOfOutputElement.waitFor({ state: 'visible'});
                         const textOfOutputElement = await titleOfOutputElement.textContent();
 
-                        const cleanedPatentText = patentText.trim().replace(/\s+/g, ' ');
-                        const cleanedOutputText = textOfOutputElement.trim().replace(/\s+/g, ' ');
+                        const headerPatent = await element.locator('.b-header__search-item-category');
+                        await headerPatent.waitFor({ state: 'visible'});
+                        const textHeaderPatent = await headerPatent.textContent();
 
-                        //console.log(`Ищем: "${cleanedPatentText}" | Проверяем: "${cleanedOutputText}"`);
+                        if (textHeaderPatent.trim() === 'Патенты') {
+                            const cleanedPatentText = patentText.trim().replace(/\s+/g, ' ');
+                            const cleanedOutputText = textOfOutputElement.trim().replace(/\s+/g, ' ');
+                            //console.log(cleanedPatentText);
+                            //console.log(cleanedOutputText);
 
-                        // Сравниваем названия патентов
-                        if (cleanedPatentText === cleanedOutputText) {
-                            found = true; // Патент найден
-                            //console.log(`Патент "${cleanedPatentText}" успешно найден.`);
-                            break; // Выход из цикла, если найдено соответствие
+                            // Сравниваем названия патентов
+                            if (cleanedPatentText === cleanedOutputText) {
+                                found = true; // Патент найден
+                                break; // Выход из цикла, если найдено соответствие
+                            }
                         }
+
+                        
                     } catch (error) {
                         console.error(`Ошибка при обработке элемента поиска: ${error}`);
                     }
                 }
 
+                if (found === false) {
+                    await page.waitForSelector('.b-header__search-total-count', { state: 'visible', timeout: 5000 });
+                    const showAllResults = await page.locator('.b-header__search-total-count');
+
+                    let count = await showAllResults.count();
+                    if (count > 0) {
+                        const linkElement = await showAllResults.locator('a');
+                        await linkElement.waitFor({ state: 'visible', timeout: 5000 });
+
+                        await linkElement.click();
+
+                        await page.waitForSelector('.b-search-page__search-item-content', { state: 'visible', timeout: 5000 });
+                        const allResultsInNewPage = await page.locator('.b-search-page__search-item-content');
+
+                        count = await allResultsInNewPage.count();
+
+                        for (let index = 0; index < count; index++) {
+                            const element = await allResultsInNewPage.nth(index);
+
+                            await page.waitForSelector('.b-search-page__search-item-category', { state: 'visible', timeout: 5000 });
+                            let title = await element.locator('.b-search-page__search-item-category');
+                            await title.waitFor({ state: 'visible' });
+
+                            title = await title.textContent();
+                            title = title.trim();
+                            if (title !== 'Патенты') {
+                                continue;
+                            }
+            
+                            const text = await element.locator('.b-search-page__search-item-title');
+                            //await text.waitFor({ state: 'visible' }); не помогло
+                            
+                            let textFromWeb = await text.textContent();
+                            
+                            if (textFromWeb.trim() === patentText) {
+                                found = true;
+                                break;
+                            }
+                            
+                        }
+
+                        await homePage.navigate();
+
+                        await homePage.searchButton.waitFor({ state: 'visible' });
+
+                        await homePage.clickElement(homePage.searchButton);
+                    }
+                } 
+                    
                 // Если после проверки всех элементов патент не был найден
                 if (!found) {
                     console.error(`Ошибка: Патент "${patentText}" не найден в результатах`);
@@ -90,7 +144,6 @@ test('patents-desktop-3', async ({ browser }) => {
     } catch (error) {
         console.error(`Ошибка в основном потоке теста: ${error}`);
     } finally {
-        // Закрываем контекст браузера в любом случае
         await context.close();
     }
 });
