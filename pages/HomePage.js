@@ -43,6 +43,9 @@ class HomePage {
     }
 
 
+    
+
+
     // Метод для проверки элементов в шапке
     async verifyHeaderItems(headerItems) {
         for (let index = 0; index < 9; index++) {
