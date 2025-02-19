@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
 const HomePage = require('../pages/HomePage');
 const PatentsPage = require('../pages/PatentsPage');
 
@@ -10,6 +11,9 @@ test('patents-desktop-3', async ({ browser }) => {
     const page = await context.newPage();
     const patentsPage = new PatentsPage(page);
 
+    // Массив для хранения результатов тестов
+    const testResults = [];
+
     try {
         await patentsPage.navigate();
         await page.waitForSelector('.b-file-item__content-title', { state: 'visible', timeout: 10000 });
@@ -17,8 +21,8 @@ test('patents-desktop-3', async ({ browser }) => {
         await patentsPage.clickElement(patentsPage.showAllButton);
         await page.waitForSelector('.b-file-item__content-title', { state: 'visible', timeout: 10000 });
 
-        const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
-        //let patents = ['ViPNet QSS', 'Способ обнаружения аномального  трафика в сети', 'Способ передачи данных в цифровых сетях передачи данных по протоколу TCP/IP через HTTP', 'Свидетельство на товарный знак ViPNet','Свидетельство РФ на товарный знак ViPNet Quandor','Способ шифрования данных'];
+        //const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
+        const patents = ['Свидетельство о государственной регистрации ViPNet SIES MC', 'Свидетельство о государственной регистрации ViPNet TLS Gateway']
 
         const homePage = new HomePage(page);
         await homePage.navigate();
@@ -28,8 +32,8 @@ test('patents-desktop-3', async ({ browser }) => {
         console.log(`Общее количество патентов: ${patents.length}`);
 
         for (let index = 0; index < patents.length; index++) {
-            //console.log(`Обрабатываем патент №${index + 1}`);
             const patentText = patents[index];
+            let found = false;
 
             try {
                 await homePage.clickElement(homePage.inputSearch);
@@ -42,16 +46,11 @@ test('patents-desktop-3', async ({ browser }) => {
                     { timeout: 20000 }
                 );
             
-                // Ждем ответа на запрос
                 await responsePromise;
 
-                // Получаем все элементы результатов поиска
                 const searchResults = homePage.searchOutputElements;
                 const count = await searchResults.count();
 
-                let found = false; // Флаг, указывающий, был ли найден патент
-
-                // Перебираем все элементы
                 for (let i = 0; i < count; i++) {
                     try {
                         const element = await searchResults.nth(i);
@@ -66,21 +65,18 @@ test('patents-desktop-3', async ({ browser }) => {
                         if (textHeaderPatent.trim() === 'Патенты') {
                             const cleanedOutputText = textOfOutputElement.trim().replace(/\s+/g, ' ');
 
-                            // Сравниваем названия патентов
                             if (patentText === cleanedOutputText) {
-                                found = true; // Патент найден
-                                factCount ++;
-                                break; // Выход из цикла, если найдено соответствие
+                                found = true;
+                                factCount++;
+                                break;
                             }
                         }
-
-                        
                     } catch (error) {
                         console.error(`Ошибка при обработке элемента поиска: ${error}`);
                     }
                 }
 
-                if (found === false) {
+                if (!found) {
                     await page.waitForSelector('.b-header__search-total-count', { state: 'visible', timeout: 5000 });
                     const showAllResults = await page.locator('.b-header__search-total-count');
 
@@ -110,42 +106,128 @@ test('patents-desktop-3', async ({ browser }) => {
                             }
             
                             const text = await element.locator('.b-search-page__search-item-title');
-                            //await text.waitFor({ state: 'visible' }); не помогло
-                            
                             let textFromWeb = await text.textContent();
                             
                             if (textFromWeb.trim() === patentText) {
                                 found = true;
-                                factCount ++;
-                                //console.log(textFromWeb.trim());
-                                //console.log(patentText);
+                                factCount++;
                                 break;
                             }
-                            
                         }
 
                         await homePage.navigate();
-
                         await homePage.searchButton.waitFor({ state: 'visible' });
-
                         await homePage.clickElement(homePage.searchButton);
                     }
                 } 
                     
-                // Если после проверки всех элементов патент не был найден
                 if (!found) {
                     console.error(`Ошибка: Патент "${patentText}" не найден в результатах`);
                 }
             } catch (error) {
                 console.error(`Ошибка при обработке патента "${patentText}": ${error}`);
             }
-            
+
+            // Добавляем результат для каждого патента
+            testResults.push({
+                testName: 'patents-desktop-3',
+                checkName: 'Поиск патента',
+                inputData: patentText,
+                
+                status: found ? 'Успешно' : 'Ошибка',
+                found: found,
+                
+            });
         }
+
         console.log('Всего найдено: ', factCount);
     } catch (error) {
         console.error(`Ошибка в основном потоке теста: ${error}`);
     } finally {
         await context.close();
     }
-    
+
+    // Генерация HTML-отчёта
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Результаты теста patents-desktop-3</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                    padding: 0;
+                    background-color: #f4f4f4;
+                }
+                h1 {
+                    color: #333;
+                    text-align: center;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                    background-color: #fff;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+                th, td {
+                    padding: 12px 15px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+                th {
+                    background-color: #4CAF50;
+                    color: white;
+                    font-weight: bold;
+                }
+                tr:hover {
+                    background-color: #f5f5f5;
+                }
+                .status-pass {
+                    color: green;
+                    font-weight: bold;
+                }
+                .status-fail {
+                    color: red;
+                    font-weight: bold;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Результаты теста patents-desktop-3</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Название теста</th>
+                        <th>Название проверки</th>
+                        <th>Входные данные</th>
+                        
+                        <th>Статус</th>
+                        <th>Найден</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    ${testResults.map(result => `
+                        <tr>
+                            <td>${result.testName}</td>
+                            <td>${result.checkName}</td>
+                            <td>${result.inputData}</td>
+                            
+                            <td class="status-${result.status === 'Успешно' ? 'pass' : 'fail'}">${result.status}</td>
+                            <td>${result.found ? 'Да' : 'Нет'}</td>
+                            
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+
+    // Сохранение HTML-файла
+    fs.writeFileSync('test-results-patents-desktop-3.html', htmlContent);
 });
