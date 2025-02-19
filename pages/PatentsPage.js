@@ -34,6 +34,7 @@ class PatentsPage {
         for (let index = 0; index < await patents.count(); index++) {
             const element = patents.nth(index);
             let text = await element.textContent();
+            text = text.trim().replace(/\s+/g, ' ')
             arrayOfNames.push(text);
         }
         return arrayOfNames;

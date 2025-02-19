@@ -18,20 +18,17 @@ test('patents-desktop-3', async ({ browser }) => {
         await page.waitForSelector('.b-file-item__content-title', { state: 'visible', timeout: 10000 });
 
         const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
-        //let patents = ['ViPNet QSS', 'Способ обнаружения аномального трафика в сети', 'Способ передачи данных в цифровых сетях передачи данных по протоколу TCP/IP через HTTP', 'Свидетельство на товарный знак ViPNet','Свидетельство РФ на товарный знак ViPNet Quandor','Способ шифрования данных'];
-        //let patents = ['Свидетельство на товарный знак ViPNet','Свидетельство РФ на товарный знак ViPNet Quandor','Способ шифрования данных','ViPNet QSS','Свидетельство на товарный знак ViPNet','ViPNet QSS','ViPNet QSS','ViPNet QSS'];
-
-        //Свидетельство о государственной регистрации ViPNet Coordinator HW 5
-        //Свидетельство о государственной регистрации ViPNet Coordinator HW 4
+        //let patents = ['ViPNet QSS', 'Способ обнаружения аномального  трафика в сети', 'Способ передачи данных в цифровых сетях передачи данных по протоколу TCP/IP через HTTP', 'Свидетельство на товарный знак ViPNet','Свидетельство РФ на товарный знак ViPNet Quandor','Способ шифрования данных'];
 
         const homePage = new HomePage(page);
         await homePage.navigate();
         await homePage.clickElement(homePage.searchButton);
 
+        let factCount = 0;
         console.log(`Общее количество патентов: ${patents.length}`);
 
         for (let index = 0; index < patents.length; index++) {
-            console.log(`Обрабатываем патент №${index + 1}`);
+            //console.log(`Обрабатываем патент №${index + 1}`);
             const patentText = patents[index];
 
             try {
@@ -41,7 +38,8 @@ test('patents-desktop-3', async ({ browser }) => {
 
                 const responsePromise = page.waitForResponse(response => 
                     response.url().startsWith('https://infotecs.ru/local/api/search/ajax/getitems.php') &&
-                    response.status() === 200
+                    response.status() === 200,
+                    { timeout: 20000 }
                 );
             
                 // Ждем ответа на запрос
@@ -66,14 +64,12 @@ test('patents-desktop-3', async ({ browser }) => {
                         const textHeaderPatent = await headerPatent.textContent();
 
                         if (textHeaderPatent.trim() === 'Патенты') {
-                            const cleanedPatentText = patentText.trim().replace(/\s+/g, ' ');
                             const cleanedOutputText = textOfOutputElement.trim().replace(/\s+/g, ' ');
-                            //console.log(cleanedPatentText);
-                            //console.log(cleanedOutputText);
 
                             // Сравниваем названия патентов
-                            if (cleanedPatentText === cleanedOutputText) {
+                            if (patentText === cleanedOutputText) {
                                 found = true; // Патент найден
+                                factCount ++;
                                 break; // Выход из цикла, если найдено соответствие
                             }
                         }
@@ -120,6 +116,9 @@ test('patents-desktop-3', async ({ browser }) => {
                             
                             if (textFromWeb.trim() === patentText) {
                                 found = true;
+                                factCount ++;
+                                //console.log(textFromWeb.trim());
+                                //console.log(patentText);
                                 break;
                             }
                             
@@ -140,10 +139,13 @@ test('patents-desktop-3', async ({ browser }) => {
             } catch (error) {
                 console.error(`Ошибка при обработке патента "${patentText}": ${error}`);
             }
+            
         }
+        console.log('Всего найдено: ', factCount);
     } catch (error) {
         console.error(`Ошибка в основном потоке теста: ${error}`);
     } finally {
         await context.close();
     }
+    
 });
