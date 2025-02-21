@@ -3,7 +3,7 @@ const fs = require('fs');
 const HomePage = require('../pages/HomePage');
 const PatentsPage = require('../pages/PatentsPage');
 
-test('patents-desktop-3', async ({ browser }) => {
+test('test 3', async ({ browser }) => {
     const context = await browser.newContext({
         viewport: { width: 2000, height: 1080 },
     });
@@ -21,8 +21,8 @@ test('patents-desktop-3', async ({ browser }) => {
         await patentsPage.clickElement(patentsPage.showAllButton);
         await page.waitForSelector('.b-file-item__content-title', { state: 'visible', timeout: 10000 });
 
-        //const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
-        const patents = ['Свидетельство о государственной регистрации ViPNet SIES MC', 'Свидетельство о государственной регистрации ViPNet TLS Gateway']
+        const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
+        //const patents = ['Свидетельство о государственной регистрации ViPNet SIES MC', 'Свидетельство о государственной регистрации ViPNet TLS Gateway']
 
         const homePage = new HomePage(page);
         await homePage.navigate();
@@ -130,12 +130,11 @@ test('patents-desktop-3', async ({ browser }) => {
 
             // Добавляем результат для каждого патента
             testResults.push({
-                testName: 'patents-desktop-3',
+                testName: 'test 3',
                 checkName: 'Поиск патента',
                 inputData: patentText,
                 
                 status: found ? 'Успешно' : 'Ошибка',
-                found: found,
                 
             });
         }
@@ -197,17 +196,14 @@ test('patents-desktop-3', async ({ browser }) => {
             </style>
         </head>
         <body>
-            <h1>Результаты теста patents-desktop-3</h1>
+            <h1>test 3</h1>
             <table>
                 <thead>
                     <tr>
                         <th>Название теста</th>
                         <th>Название проверки</th>
                         <th>Входные данные</th>
-                        
-                        <th>Статус</th>
-                        <th>Найден</th>
-                        
+                        <th>Статус</th>                        
                     </tr>
                 </thead>
                 <tbody>
@@ -216,9 +212,7 @@ test('patents-desktop-3', async ({ browser }) => {
                             <td>${result.testName}</td>
                             <td>${result.checkName}</td>
                             <td>${result.inputData}</td>
-                            
                             <td class="status-${result.status === 'Успешно' ? 'pass' : 'fail'}">${result.status}</td>
-                            <td>${result.found ? 'Да' : 'Нет'}</td>
                             
                         </tr>
                     `).join('')}

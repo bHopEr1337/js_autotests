@@ -3,7 +3,7 @@ const fs = require('fs');
 const HomePage = require('../pages/HomePage');
 const headerItems = require('../test-data/headerItems');
 
-test('home-desktop-1', async ({ browser }) => {
+test('test 1', async ({ browser }) => {
     const context = await browser.newContext({
         viewport: { width: 2000, height: 1080 },
     });
@@ -24,19 +24,17 @@ test('home-desktop-1', async ({ browser }) => {
 
         // Если всё прошло успешно, добавляем результат
         testResults.push({
-            testName: 'home-desktop-1',
+            testName: 'test 1',
             checkName: 'Проверка наличия 9 элементов из массива на странице',
             inputData: JSON.stringify(headerItems),
-            executionTime: '1.2s', // Здесь можно добавить реальное время выполнения
             status: 'Успешно'
         });
     } catch (error) {
         // Если тест упал, добавляем результат с ошибкой
         testResults.push({
-            testName: 'home-desktop-1',
+            testName: 'test 1',
             checkName: 'Проверка наличия 9 элементов из массива на странице',
             inputData: JSON.stringify(headerItems),
-            executionTime: '1.2s',
             status: 'Ошибка'
         });
     } finally {
@@ -100,7 +98,6 @@ test('home-desktop-1', async ({ browser }) => {
                         <th>Название теста</th>
                         <th>Название проверки</th>
                         <th>Входные данные</th>
-                        <th>Время выполнения</th>
                         <th>Статус</th>
                     </tr>
                 </thead>
@@ -110,7 +107,6 @@ test('home-desktop-1', async ({ browser }) => {
                             <td>${result.testName}</td>
                             <td>${result.checkName}</td>
                             <td>${result.inputData}</td>
-                            <td>${result.executionTime}</td>
                             <td class="status-${result.status === 'Успешно' ? 'pass' : 'fail'}">${result.status}</td>
                         </tr>
                     `).join('')}

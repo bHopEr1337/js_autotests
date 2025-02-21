@@ -3,7 +3,7 @@ const fs = require('fs');
 const HomePage = require('../pages/HomePage');
 const PatentsPage = require('../pages/PatentsPage');
 
-test('patents-desktop-2', async ({ browser }) => {
+test('test 2', async ({ browser }) => {
     const context = await browser.newContext({
         viewport: { width: 2000, height: 1080 },
     });
@@ -40,10 +40,9 @@ test('patents-desktop-2', async ({ browser }) => {
 
         // Добавляем результат теста в массив
         testResults.push({
-            testName: 'patents-desktop-2',
+            testName: 'test 2',
             checkName: 'Сравнение количества в двух блоках',
             inputData: `Число в фильтре: ${filterNumber}, Число в основном блоке: ${mainNumber}`,
-            executionTime: 'N/A', // Можно добавить реальное время выполнения
             status: isMatch ? 'Успешно' : 'Ошибка',
             filterNumber: filterNumber,
             mainNumber: mainNumber
@@ -54,7 +53,6 @@ test('patents-desktop-2', async ({ browser }) => {
             testName: 'patents-desktop-2',
             checkName: 'Сравнение количества в двух блоках',
             inputData: 'N/A',
-            executionTime: 'N/A',
             status: 'Ошибка',
             filterNumber: 'N/A',
             mainNumber: 'N/A'
@@ -113,14 +111,13 @@ test('patents-desktop-2', async ({ browser }) => {
             </style>
         </head>
         <body>
-            <h1>Результаты теста patents-desktop-2</h1>
+            <h1>Результаты теста test 2</h1>
             <table>
                 <thead>
                     <tr>
                         <th>Название теста</th>
                         <th>Название проверки</th>
                         <th>Входные данные</th>
-                        <th>Время выполнения</th>
                         <th>Статус</th>
                         <th>Число в фильтре</th>
                         <th>Число в основном блоке</th>
@@ -132,7 +129,6 @@ test('patents-desktop-2', async ({ browser }) => {
                             <td>${result.testName}</td>
                             <td>${result.checkName}</td>
                             <td>${result.inputData}</td>
-                            <td>${result.executionTime}</td>
                             <td class="status-${result.status === 'Успешно' ? 'pass' : 'fail'}">${result.status}</td>
                             <td>${result.filterNumber}</td>
                             <td>${result.mainNumber}</td>
