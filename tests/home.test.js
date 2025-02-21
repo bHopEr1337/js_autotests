@@ -14,6 +14,7 @@ test('test 1', async ({ browser }) => {
     // Массив для хранения результатов тестов
     const testResults = [];
     let additionalInfo = ''; // Для хранения дополнительной информации об ошибках
+    let testPassed = true; // Флаг для отслеживания успешности теста
 
     try {
         await homePage.navigate();
@@ -51,12 +52,16 @@ test('test 1', async ({ browser }) => {
             additionalInfo: additionalInfo.trim(), // Добавляем дополнительные сведения
         });
 
-        // Помечаем тест как неудачный
-        throw error; // Это гарантирует, что тест будет помечен как FAILED
+        testPassed = false; // Устанавливаем флаг, что тест не прошёл
     } finally {
         await context.close();
     }
 
     // Генерация HTML-отчёта с использованием функции
     generateHtmlReport(testResults, 'test 1', 'test-results-patents-desktop-1.html');
+
+    // Если тест не прошёл, выбрасываем ошибку
+    if (!testPassed) {
+        throw new Error('Тест завершился с ошибкой. Отчёт сформирован.');
+    }
 });

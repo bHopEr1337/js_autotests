@@ -1,5 +1,4 @@
 const { test, expect } = require('@playwright/test');
-const HomePage = require('../pages/HomePage');
 const PatentsPage = require('../pages/PatentsPage');
 const generateHtmlReport = require('../reportGenerator');
 
@@ -14,6 +13,8 @@ test('test 2', async ({ browser }) => {
     // Массив для хранения результатов тестов
     const testResults = [];
     let additionalInfo = ''; // Для хранения дополнительной информации об ошибках
+    let filterNumber = null; // Переменная для хранения числа в фильтре
+    let mainNumber = null; // Переменная для хранения числа в основном блоке
 
     try {
         await patentsPage.navigate();
@@ -22,14 +23,14 @@ test('test 2', async ({ browser }) => {
         // Получаем число из фильтра
         await patentsPage.numberInFilter.waitFor({ state: 'visible' });
         const numberInFilter = await patentsPage.numberInFilter.textContent();
-        const filterNumber = parseInt(numberInFilter.trim(), 10);
+        filterNumber = parseInt(numberInFilter.trim(), 10); // Сохраняем значение
 
         await patentsPage.clickElement(patentsPage.filterButton);
 
         // Получаем число из основного блока
         await patentsPage.mainNumber.waitFor({ state: 'visible' });
         const numberInMainBlock = await patentsPage.mainNumber.textContent();
-        const mainNumber = parseInt(numberInMainBlock.trim(), 10);
+        mainNumber = parseInt(numberInMainBlock.trim(), 10); // Сохраняем значение
 
         // Сравниваем числа и выбрасываем ошибку, если они не совпадают
         expect(filterNumber).toBe(mainNumber);
@@ -40,7 +41,7 @@ test('test 2', async ({ browser }) => {
             checkName: 'Сравнение количества в двух блоках',
             inputData: `Число в фильтре: ${filterNumber}, Число в основном блоке: ${mainNumber}`,
             status: 'Успешно',
-            additionalInfo: additionalInfo.trim(), // Добавляем дополнительные сведения (если есть)
+            additionalInfo: additionalInfo.trim(),
         });
     } catch (error) {
         // Если тест упал, добавляем результат с ошибкой
@@ -50,17 +51,17 @@ test('test 2', async ({ browser }) => {
         testResults.push({
             testName: 'test 2',
             checkName: 'Сравнение количества в двух блоках',
-            inputData: 'N/A',
+            inputData: `Число в фильтре: ${filterNumber !== null ? filterNumber : 'N/A'}, Число в основном блоке: ${mainNumber !== null ? mainNumber : 'N/A'}`,
             status: 'Ошибка',
-            additionalInfo: additionalInfo.trim(), // Добавляем дополнительные сведения
+            additionalInfo: additionalInfo.trim(),
         });
 
-        // Пробрасываем ошибку, чтобы тест завершился с FAILED
+        // Пробрасываем ошибку, чтобы тест завершился с ошибкой
         throw error;
     } finally {
         await context.close();
-    }
 
-    // Генерация HTML-отчёта с использованием функции
-    generateHtmlReport(testResults, 'test 2', 'test-results-patents-desktop-2.html');
+        // Генерация HTML-отчёта с использованием функции
+        generateHtmlReport(testResults, 'test 2', 'test-results-patents-desktop-2.html');
+    }
 });
