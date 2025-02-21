@@ -1,10 +1,14 @@
+// reportGenerator.js
+const fs = require('fs');
 
+const generateHtmlReport = (testResults, testName, fileName) => {
+    const htmlContent = `
         <!DOCTYPE html>
         <html lang="ru">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Результаты теста test 2</title>
+            <title>Результаты теста ${testName}</title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -47,7 +51,7 @@
             </style>
         </head>
         <body>
-            <h1>test 2</h1>
+            <h1>${testName}</h1>
             <table>
                 <thead>
                     <tr>
@@ -59,17 +63,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    
+                    ${testResults.map(result => `
                         <tr>
-                            <td>test 2</td>
-                            <td>Сравнение количества в двух блоках</td>
-                            <td>Число в фильтре: 74, Число в основном блоке: 82</td>
-                            <td class="status-fail">Ошибка</td>
-                            <td></td>
+                            <td>${result.testName}</td>
+                            <td>${result.checkName}</td>
+                            <td>${result.inputData}</td>
+                            <td class="status-${result.status === 'Успешно' ? 'pass' : 'fail'}">${result.status}</td>
+                            <td>${result.additionalInfo || ''}</td>
                         </tr>
-                    
+                    `).join('')}
                 </tbody>
             </table>
         </body>
         </html>
-    
+    `;
+
+    // Сохранение HTML-файла
+    fs.writeFileSync(fileName, htmlContent);
+};
+
+module.exports = generateHtmlReport;

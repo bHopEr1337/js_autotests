@@ -1,11 +1,11 @@
 const { test, expect } = require('@playwright/test');
-const fs = require('fs');
 const HomePage = require('../pages/HomePage');
 const headerItems = require('../test-data/headerItems');
+const generateHtmlReport = require('../reportGenerator'); // Импорт модуля для генерации отчётов
 
 test('test 1', async ({ browser }) => {
     const context = await browser.newContext({
-        viewport: { width: 2000, height: 1080 },
+        viewport: { width: 1920, height: 1080 },
     });
 
     const page = await context.newPage();
@@ -13,6 +13,7 @@ test('test 1', async ({ browser }) => {
 
     // Массив для хранения результатов тестов
     const testResults = [];
+    let additionalInfo = ''; // Для хранения дополнительной информации об ошибках
 
     try {
         await homePage.navigate();
@@ -20,102 +21,42 @@ test('test 1', async ({ browser }) => {
         await homePage.hoverHeader();
         await expect(homePage.aboutBlock).toBeVisible();
         await expect(homePage.headerElements.first()).toBeVisible();
-        await homePage.verifyHeaderItems(headerItems);
+
+        // Проверяем элементы в шапке с использованием метода verifyHeaderItems
+        try {
+            await homePage.verifyHeaderItems(headerItems);
+        } catch (error) {
+            additionalInfo += `Ошибка при проверке элементов шапки: ${error.message}\n`;
+            throw error; // Пробрасываем ошибку, чтобы тест завершился с FAILED
+        }
 
         // Если всё прошло успешно, добавляем результат
         testResults.push({
             testName: 'test 1',
             checkName: 'Проверка наличия 9 элементов из массива на странице',
             inputData: JSON.stringify(headerItems),
-            status: 'Успешно'
+            status: 'Успешно',
+            additionalInfo: additionalInfo.trim(), // Добавляем дополнительные сведения (если есть)
         });
     } catch (error) {
         // Если тест упал, добавляем результат с ошибкой
+        additionalInfo += `Ошибка в тесте: ${error.message}\n`;
+        console.error(`Ошибка в тесте: ${error.message}`);
+
         testResults.push({
             testName: 'test 1',
             checkName: 'Проверка наличия 9 элементов из массива на странице',
             inputData: JSON.stringify(headerItems),
-            status: 'Ошибка'
+            status: 'Ошибка',
+            additionalInfo: additionalInfo.trim(), // Добавляем дополнительные сведения
         });
+
+        // Помечаем тест как неудачный
+        throw error; // Это гарантирует, что тест будет помечен как FAILED
     } finally {
         await context.close();
     }
 
-    // Генерация HTML-отчёта
-    const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="ru">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Результаты тестов</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 20px;
-                    padding: 0;
-                    background-color: #f4f4f4;
-                }
-                h1 {
-                    color: #333;
-                    text-align: center;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 20px;
-                    background-color: #fff;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                }
-                th, td {
-                    padding: 12px 15px;
-                    text-align: left;
-                    border-bottom: 1px solid #ddd;
-                }
-                th {
-                    background-color: #4CAF50;
-                    color: white;
-                    font-weight: bold;
-                }
-                tr:hover {
-                    background-color: #f5f5f5;
-                }
-                .status-pass {
-                    color: green;
-                    font-weight: bold;
-                }
-                .status-fail {
-                    color: red;
-                    font-weight: bold;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Результаты тестов</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Название теста</th>
-                        <th>Название проверки</th>
-                        <th>Входные данные</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${testResults.map(result => `
-                        <tr>
-                            <td>${result.testName}</td>
-                            <td>${result.checkName}</td>
-                            <td>${result.inputData}</td>
-                            <td class="status-${result.status === 'Успешно' ? 'pass' : 'fail'}">${result.status}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </body>
-        </html>
-    `;
-
-    // Сохранение HTML-файла
-    fs.writeFileSync('test-results-patents-desktop-1.html', htmlContent);
+    // Генерация HTML-отчёта с использованием функции
+    generateHtmlReport(testResults, 'test 1', 'test-results-patents-desktop-1.html');
 });
