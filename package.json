@@ -6,7 +6,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Автоматизированные тесты с использованием Playwright",
   "devDependencies": {
     "@playwright/test": "^1.50.1",
     "@types/node": "^22.13.4"

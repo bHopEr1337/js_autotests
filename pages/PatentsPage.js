@@ -13,12 +13,9 @@ class PatentsPage {
         this.showAllButton = page.locator('.b-files-page__show-all.c-green-btn');
         //Все патенты
         this.allPatents = page.locator('.b-file-item__content-title');
-
-
-
-
     }
 
+    
     async navigate() {
         await this.page.goto('https://infotecs.ru/about/patents/', { waitUntil: 'domcontentloaded' });
     }
