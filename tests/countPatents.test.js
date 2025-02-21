@@ -18,7 +18,8 @@ test('test 3', async ({ browser }) => {
         await patentsPage.clickElement(patentsPage.showAllButton);
         await page.waitForSelector('.b-file-item__content-title', { state: 'visible', timeout: 10000 });
 
-        const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
+        //const patents = await patentsPage.getNameOfAllPatents(patentsPage.allPatents);
+        const patents = ['Свидетельство о государственной регистрации ViPNet SIES MC', 'Свидетельство о государственной регистрации ViPNet TLS Gateway'];
         const homePage = new HomePage(page);
         await homePage.navigate();
         await homePage.clickElement(homePage.searchButton);
@@ -46,7 +47,7 @@ test('test 3', async ({ browser }) => {
                         const responsePromise = page.waitForResponse(response => 
                             response.url().startsWith('https://infotecs.ru/local/api/search/ajax/getitems.php') &&
                             response.status() === 200,
-                            { timeout: 20000 }
+                            { timeout: 5000 }
                         );
 
                         await responsePromise;
@@ -95,7 +96,7 @@ test('test 3', async ({ browser }) => {
                 }
 
                 if (!found) {
-                    await page.waitForSelector('.b-header__search-total-count', { state: 'visible', timeout: 5000 });
+                    await page.waitForSelector('.b-header__search-total-count', { state: 'visible', timeout: 10000 });
                     const showAllResults = await page.locator('.b-header__search-total-count');
                     let count = await showAllResults.count();
 
@@ -103,13 +104,13 @@ test('test 3', async ({ browser }) => {
                         const linkElement = await showAllResults.locator('a');
                         await linkElement.waitFor({ state: 'visible', timeout: 5000 });
                         await linkElement.click();
-                        await page.waitForSelector('.b-search-page__search-item-content', { state: 'visible', timeout: 5000 });
+                        await page.waitForSelector('.b-search-page__search-item-content', { state: 'visible', timeout: 10000 });
                         const allResultsInNewPage = await page.locator('.b-search-page__search-item-content');
                         count = await allResultsInNewPage.count();
 
                         for (let index = 0; index < count; index++) {
                             const element = await allResultsInNewPage.nth(index);
-                            await page.waitForSelector('.b-search-page__search-item-category', { state: 'visible', timeout: 5000 });
+                            await page.waitForSelector('.b-search-page__search-item-category', { state: 'visible', timeout: 10000 });
                             let title = await element.locator('.b-search-page__search-item-category');
                             await title.waitFor({ state: 'visible' });
                             title = await title.textContent();

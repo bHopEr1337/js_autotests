@@ -31,21 +31,21 @@ test('test 2', async ({ browser }) => {
         const numberInMainBlock = await patentsPage.mainNumber.textContent();
         const mainNumber = parseInt(numberInMainBlock.trim(), 10);
 
-        // Сравниваем числа
-        const isMatch = filterNumber === mainNumber;
+        // Сравниваем числа и выбрасываем ошибку, если они не совпадают
+        expect(filterNumber).toBe(mainNumber);
 
-        // Добавляем результат теста в массив
+        // Если числа совпали, добавляем результат теста в массив
         testResults.push({
             testName: 'test 2',
             checkName: 'Сравнение количества в двух блоках',
             inputData: `Число в фильтре: ${filterNumber}, Число в основном блоке: ${mainNumber}`,
-            status: isMatch ? 'Успешно' : 'Ошибка',
+            status: 'Успешно',
             additionalInfo: additionalInfo.trim(), // Добавляем дополнительные сведения (если есть)
         });
     } catch (error) {
         // Если тест упал, добавляем результат с ошибкой
-        additionalInfo += `Ошибка в тесте: ${error}\n`;
-        console.error(`Ошибка в тесте: ${error}`);
+        additionalInfo += `Ошибка в тесте: ${error.message}\n`;
+        console.error(`Ошибка в тесте: ${error.message}`);
 
         testResults.push({
             testName: 'test 2',
@@ -54,6 +54,9 @@ test('test 2', async ({ browser }) => {
             status: 'Ошибка',
             additionalInfo: additionalInfo.trim(), // Добавляем дополнительные сведения
         });
+
+        // Пробрасываем ошибку, чтобы тест завершился с FAILED
+        throw error;
     } finally {
         await context.close();
     }
